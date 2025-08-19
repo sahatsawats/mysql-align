@@ -11,3 +11,9 @@ type InformationConfig struct {
 	VariableName	string;
 	VariableVaule	string;
 }
+
+type InformationObject struct {
+	ObjectType	string;
+	SchemaName	string;
+	ObjectName	string;
+}

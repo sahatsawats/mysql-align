@@ -121,3 +121,61 @@ func getTablesInSchema(prepareStmt *sql.Stmt, schemaName string) ([]models.Infor
 
 	return listOfInformationTable, nil
 }
+
+func ReconcileObject(conn *sql.DB) ([]models.InformationObject, error) {
+	const statement string = `SELECT 'ObjectType','DatabaseName','ObjectName'
+	UNION ALL
+	SELECT 'Table', TABLE_SCHEMA, TABLE_NAME 
+	FROM information_schema.TABLES 
+	WHERE TABLE_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
+
+	UNION ALL
+	SELECT 'View', TABLE_SCHEMA, TABLE_NAME 
+	FROM information_schema.VIEWS 
+	WHERE TABLE_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
+
+	UNION ALL
+	SELECT 'Trigger', TRIGGER_SCHEMA, TRIGGER_NAME 
+	FROM information_schema.TRIGGERS 
+	WHERE TRIGGER_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
+
+	UNION ALL
+	SELECT 'Procedure', ROUTINE_SCHEMA, ROUTINE_NAME 
+	FROM information_schema.ROUTINES 
+	WHERE ROUTINE_TYPE='PROCEDURE' 
+	AND ROUTINE_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
+
+	UNION ALL
+	SELECT 'Function', ROUTINE_SCHEMA, ROUTINE_NAME 
+	FROM information_schema.ROUTINES 
+	WHERE ROUTINE_TYPE='FUNCTION' 
+	AND ROUTINE_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
+
+	UNION ALL
+	SELECT 'Index', TABLE_SCHEMA, CONCAT(TABLE_NAME, ' (', INDEX_NAME, ')')
+	FROM information_schema.STATISTICS
+	WHERE TABLE_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
+
+	ORDER BY DatabaseName, ObjectType, ObjectName;`
+
+	var informationObjects []models.InformationObject
+	// query statement
+	rows, err := conn.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	// loop through each result
+	for rows.Next() {
+		var object models.InformationObject
+
+		err := rows.Scan(&object.ObjectType, &object.SchemaName, &object.ObjectName)
+		if err != nil {
+			return nil, err
+		}
+
+		informationObjects = append(informationObjects, object)
+	}
+
+	return informationObjects, nil
+}

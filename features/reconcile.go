@@ -32,28 +32,32 @@ func Reconcile(conn *sql.DB) ([]models.InformationSchema, error) {
 	// loop through each schema name.
 	for _, schema := range schemas {
 		// get all tables within given database.
-		tableInformations, err = getTablesInSchema(getTableStatement, schema)
+		tables, err := getTablesInSchema(getTableStatement, schema)
 		if err != nil {
 			return nil, err
 		}
 
+		if len(tables) == 0 {
+			return nil, fmt.Errorf("table in schema is empty. total_table: %d", len(tables))
+		}
+
 		// loop query an sum of rows in given tables.
-		for i := range tableInformations {
+		for i := range tables {
 			var rowCounts int
 			// Get schema and table name
-			var tableInformation = tableInformations[i]
+			var table models.InformationSchema = tables[i]
 			// Count row statement that received schema and table name
-			countRowStatement := fmt.Sprintf("SELECT * FROM %s.%s", tableInformation.SchemaName, tableInformation.TableName)
-			//fmt.Println(countRowStatement)
+			countRowStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s", table.SchemaName, table.TableName)
 			// Query count of row
 			row := conn.QueryRow(countRowStatement)
 			err := row.Scan(&rowCounts)
 			if err != nil {
 				return nil, err
 			}
-			
+	
 			// change field row in tableInformation.
-			tableInformations[i].Rows = rowCounts 
+			tables[i].Rows = rowCounts
+			tableInformations = append(tableInformations, tables[i])
 		}
 	}
 

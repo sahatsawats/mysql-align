@@ -7,27 +7,27 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var DSN string
-var DB *sql.DB
 
-// Build DSN, prerequisite check. Return Error.
-func InitializeDB(host string, port string, user string, password string) error {
+// Build DSN, prerequisite check. Return pointer of database or Error.
+func InitializeDB(host *string, port *int, user *string, password *string) (*sql.DB, error) {
 	var err error
 	// $USER:$PWD@/tcp($HOST:$PORT)/$DATABASE)
-	DSN = fmt.Sprintf("%s:%s@/tcp(%s:%s)/", user, password, host, port)
-	DB, err = sql.Open("mysql", DSN)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/", *user, *password, *host, *port)
+	conn, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return err
+		return nil, err
 	} else {
-		fmt.Sprintf("Initialize database connection compeleted.")
+		fmt.Println("Initialize database connection compeleted.")
 	}
 
-	if err := DB.Ping(); err != nil {
-		return err
+	if err := conn.Ping(); err != nil {
+		return nil, err
 	} else {
-		fmt.Sprintf("Connected to MySQL.")
+		fmt.Println("Connected to MySQL.")
 	}
 
-	return nil
+	return conn, nil
 }
+
+
 

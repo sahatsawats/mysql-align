@@ -3,11 +3,11 @@ package features
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/sahatsawats/mysql-align/models"
 )
 
-
-func Reconcile(conn *sql.DB) ([]models.InformationSchema, error) {
+func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 	var tableInformations []models.InformationSchema
 	var schemas []string
 	var err error
@@ -54,7 +54,7 @@ func Reconcile(conn *sql.DB) ([]models.InformationSchema, error) {
 			if err != nil {
 				return nil, err
 			}
-	
+
 			// change field row in tableInformation.
 			tables[i].Rows = rowCounts
 			tableInformations = append(tableInformations, tables[i])
@@ -63,7 +63,6 @@ func Reconcile(conn *sql.DB) ([]models.InformationSchema, error) {
 
 	return tableInformations, nil
 }
-
 
 func getAllSchemas(conn *sql.DB) ([]string, error) {
 	// variables to hold schema name
@@ -95,7 +94,7 @@ func getAllSchemas(conn *sql.DB) ([]string, error) {
 
 func getTablesInSchema(prepareStmt *sql.Stmt, schemaName string) ([]models.InformationSchema, error) {
 	var listOfInformationTable []models.InformationSchema
-	
+
 	// query all of tables name in given schema
 	tables, err := prepareStmt.Query(schemaName)
 	if err != nil {
@@ -113,13 +112,12 @@ func getTablesInSchema(prepareStmt *sql.Stmt, schemaName string) ([]models.Infor
 		// bind a query results to datatype.
 		informationTable := models.InformationSchema{
 			SchemaName: tableSchema,
-			TableName: tableName,
+			TableName:  tableName,
 		}
 
 		// append datatype to list
 		listOfInformationTable = append(listOfInformationTable, informationTable)
 	}
 
-	
 	return listOfInformationTable, nil
 }

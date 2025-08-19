@@ -7,7 +7,7 @@ import (
 )
 
 
-func Recconcile(conn *sql.DB) ([]models.InformationSchema, error) {
+func Reconcile(conn *sql.DB) ([]models.InformationSchema, error) {
 	var tableInformations []models.InformationSchema
 	var schemas []string
 	var err error

@@ -15,7 +15,26 @@ import (
 // Make docker to test
 func main() {
 	const version string = "v1.00"
+	fmt.Print(`
+########################################################################################################################################
+ _____ _          _     _                _         ____                                          _     _           _ _           _ 
+|  ___(_)_ __ ___| |_  | |    ___   __ _(_) ___   / ___|___  _ __ ___  _ __   __ _ _ __  _   _  | |   (_)_ __ ___ (_) |_ ___  __| |
+| |_  | | '__/ __| __| | |   / _ \ / _  | |/ __| | |   / _ \| '_   _ \| '_ \ / _  | '_ \| | | | | |   | | '_   _ \| | __/ _ \/ _  |
+|  _| | | |  \__ \ |_  | |__| (_) | (_| | | (__  | |__| (_) | | | | | | |_) | (_| | | | | |_| | | |___| | | | | | | | ||  __/ (_| |
+|_|   |_|_|  |___/\__| |_____\___/ \__, |_|\___|  \____\___/|_| |_| |_| .__/ \__,_|_| |_|\__, | |_____|_|_| |_| |_|_|\__\___|\__,_|
+                                   |___/                              |_|                |___/                                     
+########################################################################################################################################`)
+	fmt.Println()
+	fmt.Println("© 2025 First Logic Company")
+	fmt.Println("All rights reserved. Proprietary software.")
+	fmt.Println("This script is for migration purposes ONLY.")
+	fmt.Println("Unauthorized use, copying, or distribution is strictly prohibited.")
+	fmt.Println("________________________________________________________________________________________________________________________________________")
+	fmt.Println()
 
+
+
+	
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: myalign <command> [args]")
 	}
@@ -76,7 +95,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		os.Exit(0)
 	case "recon-object":
 		var resultsReport []models.InformationObject
 		// CMD arguments
@@ -127,7 +145,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		os.Exit(0)
 
 	case "get-config":
 		//var configs []models.InformationConfig
@@ -176,10 +193,13 @@ func main() {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-
-		os.Exit(0)
 	default:
 		fmt.Println("Mismatch detected. Please choose a corrective action.")
+		os.Exit(1)
 	}
+
+
+	fmt.Println("________________________________________________________________________________________________________________________________________")
+	os.Exit(0)
 
 }

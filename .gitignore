@@ -1,3 +1,4 @@
 .vscode/
 output/
 public_key/
+build/

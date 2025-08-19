@@ -6,3 +6,8 @@ type InformationSchema struct {
 	TableName	string;
 	Rows 		int;
 }
+
+type InformationConfig struct {
+	VariableName	string;
+	VariableVaule	string;
+}

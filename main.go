@@ -15,7 +15,7 @@ import (
 
 // Make docker to test
 func main() {
-	const version string = "v1.05"
+	const version string = "v1.06"
 	
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: myalign <command> [args]")
@@ -29,15 +29,20 @@ func main() {
 		os.Exit(0)
 	case "pre-migration":
 		// CMD arguments
-		reconcileCmd := flag.NewFlagSet("recconcile", flag.ExitOnError)
-		user := reconcileCmd.String("user", "root", "User to access database")
-		pwd := reconcileCmd.String("password", "", "Password for user to access database")
-		host := reconcileCmd.String("host", "localhost", "Hostname or IP-Address to database server")
-		port := reconcileCmd.Int("port", 3306, "Port of database server")
-		serverPubPath := reconcileCmd.String("server-pub-key", "", "RSA file for transmite encryption data.")
-		
-		reconcileCmd.Parse(os.Args[2:])
+		CMD := flag.NewFlagSet("recconcile", flag.ExitOnError)
+		user := CMD.String("user", "root", "User to access database")
+		pwd := CMD.String("password", "", "Password for user to access database")
+		host := CMD.String("host", "localhost", "Hostname or IP-Address to database server")
+		port := CMD.Int("port", 3306, "Port of database server")
+		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
+		output := CMD.String("output-path", "", "output directory")
+		CMD.Parse(os.Args[2:])
 
+		if *output == "" {
+			fmt.Println("Please specify output path for csv file with --output <file-path>")
+			os.Exit(1)
+		}
+		
 		printLogo()
 
 
@@ -51,12 +56,17 @@ func main() {
 		
 		fmt.Println("Checking upgrade compatability to MySQL Enterprise Edition 8.4.X")
 		fmt.Println()
+		
 		charSetReport, err := features.CheckCharSet(conn)
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
 		if len(charSetReport) != 0 {
 			fmt.Println("[CHAR_CHECK]: NOT OK. ( CHAR_CHECK_ERR_COUNT:", len(charSetReport), ")")
+			err := utils.CharSetReportToCSV(charSetReport, *output)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		} else {
 			fmt.Println("[CHAR_CHECK]: OK")
 		}
@@ -67,6 +77,10 @@ func main() {
 		}
 		if len(engineReport) != 0 {
 			fmt.Println("[ENGINE_CHECK]: NOT OK. ( ENGINE_CHECK_ERR_COUNT:", len(engineReport), ")")
+			err := utils.EngineReportToCSV(engineReport, *output)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		} else {
 			fmt.Println("[ENGINE_CHECK]: OK")
 		}
@@ -76,7 +90,11 @@ func main() {
 			fmt.Println("Error: ", err)
 		}
 		if len(pkReport) != 0 {
-			fmt.Println("[PK_CHECK]: NOT OK. ( PK_ERR_COUNT:", pkReport, ")")
+			fmt.Println("[PK_CHECK]: NOT OK. ( PK_ERR_COUNT:", len(pkReport), ")")
+			err := utils.PKReportToCSV(pkReport, *output)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		} else {
 			fmt.Println("[PK_CHECK]: OK")
 		}
@@ -98,6 +116,10 @@ func main() {
 		//fmt.Println(viewReport)
 		if len(viewReport) != 0 {
 			fmt.Println("[VIEW_CHECK]: NOT OK. ( VIEW_CHECK_ERR_COUNT:", len(viewReport), ")")
+			err := utils.ViewReportToCSV(viewReport, *output)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		} else {
 			fmt.Println("[VIEW_CHECK]: OK")
 		}
@@ -106,9 +128,12 @@ func main() {
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
-		//fmt.Println(viewReport)
 		if len(syntaxRoutineReport) != 0 {
 			fmt.Println("[ROUTINE_SYNTAX_CHECK]: NOT OK. ( ROUTINE_SYNTAX_ERR_COUNT:", len(syntaxRoutineReport), ")")
+			err := utils.SyntaxRoutineToCSV(syntaxRoutineReport, *output)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		} else {
 			fmt.Println("[ROUTINE_SYNTAX_CHECK]: OK")
 		}
@@ -117,32 +142,29 @@ func main() {
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
-		//fmt.Println(viewReport)
 		if len(functionRoutineReport) != 0 {
 			fmt.Println("[ROUTINE_FUNC_CHECK]: NOT OK. ( ROUTINE_FUNC_ERR_COUNT:", len(functionRoutineReport), ")")
+			err := utils.FunctionRoutineToCSV(functionRoutineReport, *output)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		} else {
 			fmt.Println("[ROUTINE_FUNC_CHECK]: OK")
 		}
 		
-	case "recon-row":
+	case "recon-rows":
 		var resultsReport []models.InformationSchema
 
 		// CMD arguments
-		reconcileCmd := flag.NewFlagSet("recconcile", flag.ExitOnError)
-		user := reconcileCmd.String("user", "root", "User to access database")
-		pwd := reconcileCmd.String("password", "", "Password for user to access database")
-		host := reconcileCmd.String("host", "localhost", "Hostname or IP-Address to database server")
-		port := reconcileCmd.Int("port", 3306, "Port of database server")
-		serverPubPath := reconcileCmd.String("server-pub-key", "", "RSA file for transmite encryption data.")
+		CMD := flag.NewFlagSet("recconcile", flag.ExitOnError)
+		user := CMD.String("user", "root", "User to access database")
+		pwd := CMD.String("password", "", "Password for user to access database")
+		host := CMD.String("host", "localhost", "Hostname or IP-Address to database server")
+		port := CMD.Int("port", 3306, "Port of database server")
+		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
 
-		output := reconcileCmd.String("output", "", "Path to output csv file.")
-		reconcileCmd.Parse(os.Args[2:])
-
-		// Check output file is not empty.
-		if *pwd == "" {
-			fmt.Println("Please specify password for user with --password <password>")
-			os.Exit(1)
-		}
+		output := CMD.String("output", "", "Path to output csv file.")
+		CMD.Parse(os.Args[2:])
 
 		if *output == "" {
 			fmt.Println("Please specify output path for csv file with --output <file-path>")
@@ -174,24 +196,18 @@ func main() {
 			os.Exit(1)
 		}
 
-	case "recon-object":
+	case "recon-objs":
 		var resultsReport []models.InformationObject
 		// CMD arguments
-		reconcileCmd := flag.NewFlagSet("recconcile", flag.ExitOnError)
-		user := reconcileCmd.String("user", "root", "User to access database")
-		pwd := reconcileCmd.String("password", "", "Password for user to access database")
-		host := reconcileCmd.String("host", "localhost", "Hostname or IP-Address to database server")
-		port := reconcileCmd.Int("port", 3306, "Port of database server")
-		serverPubPath := reconcileCmd.String("server-pub-key", "", "RSA file for transmite encryption data.")
+		CMD := flag.NewFlagSet("recconcile", flag.ExitOnError)
+		user := CMD.String("user", "root", "User to access database")
+		pwd := CMD.String("password", "", "Password for user to access database")
+		host := CMD.String("host", "localhost", "Hostname or IP-Address to database server")
+		port := CMD.Int("port", 3306, "Port of database server")
+		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
 
-		output := reconcileCmd.String("output", "", "Path to output csv file.")
-		reconcileCmd.Parse(os.Args[2:])
-
-		// Check output file is not empty.
-		if *pwd == "" {
-			fmt.Println("Please specify password for user with --password <password>")
-			os.Exit(1)
-		}
+		output := CMD.String("output", "", "Path to output csv file.")
+		CMD.Parse(os.Args[2:])
 		
 		if *output == "" {
 			fmt.Println("Please specify output path for csv file with --output <file-path>")
@@ -228,21 +244,16 @@ func main() {
 		//var configs []models.InformationConfig
 
 		// CMD arguments
-		reconcileCmd := flag.NewFlagSet("recconcile", flag.ExitOnError)
-		user := reconcileCmd.String("user", "root", "User to access database")
-		pwd := reconcileCmd.String("password", "", "Password for user to access database")
-		host := reconcileCmd.String("host", "localhost", "Hostname or IP-Address to database server")
-		port := reconcileCmd.Int("port", 3306, "Port of database server")
-		serverPubPath := reconcileCmd.String("server-pub-key", "", "RSA file for transmite encryption data.")
-		output := reconcileCmd.String("output", "", "Path to output csv file.")
-		reconcileCmd.Parse(os.Args[2:])
+		CMD := flag.NewFlagSet("recconcile", flag.ExitOnError)
+		user := CMD.String("user", "root", "User to access database")
+		pwd := CMD.String("password", "", "Password for user to access database")
+		host := CMD.String("host", "localhost", "Hostname or IP-Address to database server")
+		port := CMD.Int("port", 3306, "Port of database server")
+		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
+		output := CMD.String("output", "", "Path to output csv file.")
+		CMD.Parse(os.Args[2:])
 
 		// Check output file is not empty.
-		if *pwd == "" {
-			fmt.Println("Please specify password for user with --password <password>")
-			os.Exit(1)
-		}
-
 		if *output == "" {
 			fmt.Println("Please specify output path for csv file with --output <file-path>")
 			os.Exit(1)
@@ -275,10 +286,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	now := time.Now().Format("2006-01-02 15:04:05")
-	timeEnd := fmt.Sprintf("                                              Program stopped at %s                 \n", now)
-	fmt.Print(timeEnd)
-	fmt.Println("________________________________________________________________________________________________________________________________________")
+	endProgram()
 	os.Exit(0)
 
 }
@@ -307,3 +315,9 @@ func printLogo() {
 }
 
 
+func endProgram() {
+	now := time.Now().Format("2006-01-02 15:04:05")
+	timeEnd := fmt.Sprintf("                                              Program stopped at %s                 \n", now)
+	fmt.Print(timeEnd)
+	fmt.Println("________________________________________________________________________________________________________________________________________")
+}

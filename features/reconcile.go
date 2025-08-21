@@ -38,7 +38,7 @@ func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 		}
 
 		if len(tables) == 0 {
-			return nil, fmt.Errorf("table in schema is empty. total_table: %d", len(tables))
+			continue
 		}
 
 		// loop query an sum of rows in given tables.

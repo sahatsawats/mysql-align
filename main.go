@@ -143,10 +143,7 @@ func main() {
 			fmt.Println("Please specify password for user with --password <password>")
 			os.Exit(1)
 		}
-		if *serverPubPath == "" && *host != "localhost" {
-			fmt.Println("Detect none-localhost but missing server public key. Please specify path to public key with --server-pub-key <path-to-pub-key>")
-			os.Exit(1)
-		}
+
 		if *output == "" {
 			fmt.Println("Please specify output path for csv file with --output <file-path>")
 			os.Exit(1)
@@ -195,10 +192,7 @@ func main() {
 			fmt.Println("Please specify password for user with --password <password>")
 			os.Exit(1)
 		}
-		if *serverPubPath == "" && *host != "localhost" {
-			fmt.Println("Detect none-localhost but missing server public key. Please specify path to public key with --server-pub-key <path-to-pub-key>")
-			os.Exit(1)
-		}
+		
 		if *output == "" {
 			fmt.Println("Please specify output path for csv file with --output <file-path>")
 			os.Exit(1)
@@ -246,10 +240,6 @@ func main() {
 		// Check output file is not empty.
 		if *pwd == "" {
 			fmt.Println("Please specify password for user with --password <password>")
-			os.Exit(1)
-		}
-		if *serverPubPath == "" && *host != "localhost" {
-			fmt.Println("Detect none-localhost but missing server public key. Please specify path to public key with --server-pub-key <path-to-pub-key>")
 			os.Exit(1)
 		}
 

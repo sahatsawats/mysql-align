@@ -15,7 +15,7 @@ import (
 
 // Make docker to test
 func main() {
-	const version string = "v1.01"
+	const version string = "v1.05"
 	
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: myalign <command> [args]")
@@ -27,6 +27,103 @@ func main() {
 	case "version":
 		fmt.Println(version)
 		os.Exit(0)
+	case "pre-migration":
+		// CMD arguments
+		reconcileCmd := flag.NewFlagSet("recconcile", flag.ExitOnError)
+		user := reconcileCmd.String("user", "root", "User to access database")
+		pwd := reconcileCmd.String("password", "", "Password for user to access database")
+		host := reconcileCmd.String("host", "localhost", "Hostname or IP-Address to database server")
+		port := reconcileCmd.Int("port", 3306, "Port of database server")
+		serverPubPath := reconcileCmd.String("server-pub-key", "", "RSA file for transmite encryption data.")
+		
+		reconcileCmd.Parse(os.Args[2:])
+
+		printLogo()
+
+
+		// initialize database connection. return conn object
+		conn, err := db.InitializeDB(host, port, user, pwd, serverPubPath)
+		defer conn.Close()
+		if err != nil {
+			fmt.Println("Error: ", err)
+			os.Exit(1)
+		}
+		
+		fmt.Println("Checking upgrade compatability to MySQL Enterprise Edition 8.4.X")
+		fmt.Println()
+		charSetReport, err := features.CheckCharSet(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		if len(charSetReport) != 0 {
+			fmt.Println("[CHAR_CHECK]: NOT OK. ( CHAR_CHECK_ERR_COUNT:", len(charSetReport), ")")
+		} else {
+			fmt.Println("[CHAR_CHECK]: OK")
+		}
+
+		engineReport, err := features.CheckEngine(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		if len(engineReport) != 0 {
+			fmt.Println("[ENGINE_CHECK]: NOT OK. ( ENGINE_CHECK_ERR_COUNT:", len(engineReport), ")")
+		} else {
+			fmt.Println("[ENGINE_CHECK]: OK")
+		}
+
+		pkReport, err := features.CheckNoPK(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		if len(pkReport) != 0 {
+			fmt.Println("[PK_CHECK]: NOT OK. ( PK_ERR_COUNT:", pkReport, ")")
+		} else {
+			fmt.Println("[PK_CHECK]: OK")
+		}
+
+		fkReport, err := features.CheckFKDuplication(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		if fkReport != 0 {
+			fmt.Println("[FK_CHECK]: NOT OK. ( FK_DUP_ERR_COUNT:", fkReport, ")")
+		} else {
+			fmt.Println("[FK_CHECK]: OK")
+		}
+
+		viewReport, err := features.CheckViewDeprecated(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		//fmt.Println(viewReport)
+		if len(viewReport) != 0 {
+			fmt.Println("[VIEW_CHECK]: NOT OK. ( VIEW_CHECK_ERR_COUNT:", len(viewReport), ")")
+		} else {
+			fmt.Println("[VIEW_CHECK]: OK")
+		}
+
+		syntaxRoutineReport, err := features.CheckRoutineSyntaxDeprecated(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		//fmt.Println(viewReport)
+		if len(syntaxRoutineReport) != 0 {
+			fmt.Println("[ROUTINE_SYNTAX_CHECK]: NOT OK. ( ROUTINE_SYNTAX_ERR_COUNT:", len(syntaxRoutineReport), ")")
+		} else {
+			fmt.Println("[ROUTINE_SYNTAX_CHECK]: OK")
+		}
+		
+		functionRoutineReport, err := features.CheckRoutineFunctionDeprecated(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		//fmt.Println(viewReport)
+		if len(functionRoutineReport) != 0 {
+			fmt.Println("[ROUTINE_FUNC_CHECK]: NOT OK. ( ROUTINE_FUNC_ERR_COUNT:", len(functionRoutineReport), ")")
+		} else {
+			fmt.Println("[ROUTINE_FUNC_CHECK]: OK")
+		}
+		
 	case "recon-row":
 		var resultsReport []models.InformationSchema
 
@@ -218,3 +315,5 @@ func printLogo() {
 	fmt.Print(timestart)
 
 }
+
+

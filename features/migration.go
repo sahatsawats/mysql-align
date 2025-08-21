@@ -6,6 +6,34 @@ import (
 	"github.com/sahatsawats/mysql-align/models"
 )
 
+func CheckNoPK(conn *sql.DB) ([]models.InformationNoPKTable, error) {
+	const statement string = `SELECT T.TABLE_SCHEMA, T.TABLE_NAME FROM information_schema.TABLES AS T WHERE
+    T.TABLE_SCHEMA NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys')
+    AND T.TABLE_TYPE = 'BASE TABLE' AND (T.TABLE_SCHEMA, T.TABLE_NAME) NOT IN (
+    SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE CONSTRAINT_NAME = 'PRIMARY'
+    );`
+	var listOfNoPKTable []models.InformationNoPKTable
+	// query
+	rows, err := conn.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	// loop through each result
+	for rows.Next() {
+		// scan query results
+		var noPKTable models.InformationNoPKTable
+		err := rows.Scan(&noPKTable.SchemaName, &noPKTable.TableName)
+		if err != nil {
+			return nil, err
+		}
+
+		listOfNoPKTable = append(listOfNoPKTable, noPKTable)
+	}
+
+	return listOfNoPKTable, nil
+}
+
 func CheckCharSet(conn *sql.DB) ([]models.CharSetObject, error) {
 	const statement string = `SELECT schema_name, default_character_set_name 
 	FROM information_schema.schemata WHERE schema_name NOT IN 
@@ -113,4 +141,82 @@ func CheckFKDuplication(conn *sql.DB) (int, error) {
 	}
 
 	return FKDuplicationCounts, nil
+}
+
+func CheckViewDeprecated(conn *sql.DB) ([]models.InformationView, error) {
+	const statement string = `SELECT table_schema, table_name, view_definition FROM information_schema.views 
+	WHERE table_schema NOT IN ('mysql', 'performance_schema', 'sys', 'information_schema') AND 
+	(view_definition LIKE '%GROUP BY%ASC%' OR view_definition LIKE '%GROUP BY%DESC%');`
+	var listOfDeprecateViews []models.InformationView
+	
+	rows, err := conn.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	// loop through each result
+	for rows.Next() {
+		// scan query results
+		var deprecateView models.InformationView
+		err := rows.Scan(&deprecateView.SchemaName, &deprecateView.TableName, &deprecateView.ViewDefinition)
+		if err != nil {
+			return nil, err
+		}
+
+		listOfDeprecateViews = append(listOfDeprecateViews, deprecateView)
+	}
+
+	return listOfDeprecateViews, nil
+}
+
+func CheckRoutineSyntaxDeprecated(conn *sql.DB) ([]models.InformationRoutineDeprecated, error) {
+	const statement string = `SELECT ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_DEFINITION FROM
+    information_schema.ROUTINES WHERE ROUTINE_SCHEMA NOT IN ('mysql', 'performance_schema', 'sys', 'information_schema')
+    AND (ROUTINE_DEFINITION LIKE '%GROUP BY%ASC%' OR ROUTINE_DEFINITION LIKE '%GROUP BY%DESC%');`
+	var listOfRoutineSyntaxDeprecated []models.InformationRoutineDeprecated
+	
+	rows, err := conn.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	// loop through each result
+	for rows.Next() {
+		// scan query results
+		var deprecateSyntax models.InformationRoutineDeprecated
+		err := rows.Scan(&deprecateSyntax.SchemaName, &deprecateSyntax.RoutineName, &deprecateSyntax.RoutineType,&deprecateSyntax.RoutineDefinition)
+		if err != nil {
+			return nil, err
+		}
+
+		listOfRoutineSyntaxDeprecated = append(listOfRoutineSyntaxDeprecated, deprecateSyntax)
+	}
+
+	return listOfRoutineSyntaxDeprecated, nil
+}
+
+func CheckRoutineFunctionDeprecated(conn *sql.DB) ([]models.InformationRoutineDeprecated, error) {
+	const statement string = `SELECT ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_DEFINITION FROM
+    information_schema.ROUTINES WHERE ROUTINE_SCHEMA NOT IN ('mysql', 'performance_schema', 'sys', 'information_schema')
+    AND (ROUTINE_DEFINITION LIKE '%DECODE(%' OR ROUTINE_DEFINITION LIKE '%ENCODE(%' OR ROUTINE_DEFINITION LIKE '%COMPRESS(%')`
+	var listOfRoutineFunctionDeprecated []models.InformationRoutineDeprecated
+
+	rows, err := conn.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	// loop through each result
+	for rows.Next() {
+		// scan query results
+		var deprecateFunction models.InformationRoutineDeprecated
+		err := rows.Scan(&deprecateFunction.SchemaName, &deprecateFunction.RoutineName, &deprecateFunction.RoutineType,&deprecateFunction.RoutineDefinition)
+		if err != nil {
+			return nil, err
+		}
+
+		listOfRoutineFunctionDeprecated = append(listOfRoutineFunctionDeprecated, deprecateFunction)
+	}
+
+	return listOfRoutineFunctionDeprecated, nil
 }

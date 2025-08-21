@@ -17,3 +17,33 @@ type InformationObject struct {
 	SchemaName	string;
 	ObjectName	string;
 }
+
+type CharSetObject struct {
+	Severity	string;
+	SchemaName	string;
+	CharSet		string;
+}
+
+type InformationTableEngine struct {
+	SchemaName 	string;
+	TableName	string;
+	Engine		string;
+}
+
+type InformationView struct {
+	SchemaName 		string;
+	TableName		string;
+	ViewDefinition	string;
+}
+
+type InformationRoutineDeprecated struct {
+	SchemaName 		string;
+	RoutineName		string;
+	RoutineType		string;
+	RoutineDefinition	string;
+}
+
+type InformationNoPKTable struct {
+	SchemaName	string
+	TableName	string
+}

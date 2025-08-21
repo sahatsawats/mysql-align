@@ -85,7 +85,7 @@ func CheckEngine(conn *sql.DB) ([]models.InformationTableEngine, error) {
 	table_schema NOT IN ('mysql','performance_schema','sys','information_schema');`
 
 	var warningTables []models.InformationTableEngine
-	var warningList = []string{"MyISAM", "Memory", "Federated"}
+	var warningList = []string{"MyISAM", "Memory", "FEDERATED"}
 
 	var warnSet = make(map[string]struct{})
 	for _, w := range warningList {
@@ -129,7 +129,7 @@ func CheckFKDuplication(conn *sql.DB) (int, error) {
 	// loop through each result
 	for rows.Next() {
 		// scan query results
-		var FKCount int;
+		var FKCount int
 		err := rows.Scan(&FKCount)
 		if err != nil {
 			return 0, err
@@ -148,7 +148,7 @@ func CheckViewDeprecated(conn *sql.DB) ([]models.InformationView, error) {
 	WHERE table_schema NOT IN ('mysql', 'performance_schema', 'sys', 'information_schema') AND 
 	(view_definition LIKE '%GROUP BY%ASC%' OR view_definition LIKE '%GROUP BY%DESC%');`
 	var listOfDeprecateViews []models.InformationView
-	
+
 	rows, err := conn.Query(statement)
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func CheckRoutineSyntaxDeprecated(conn *sql.DB) ([]models.InformationRoutineDepr
     information_schema.ROUTINES WHERE ROUTINE_SCHEMA NOT IN ('mysql', 'performance_schema', 'sys', 'information_schema')
     AND (ROUTINE_DEFINITION LIKE '%GROUP BY%ASC%' OR ROUTINE_DEFINITION LIKE '%GROUP BY%DESC%');`
 	var listOfRoutineSyntaxDeprecated []models.InformationRoutineDeprecated
-	
+
 	rows, err := conn.Query(statement)
 	if err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func CheckRoutineSyntaxDeprecated(conn *sql.DB) ([]models.InformationRoutineDepr
 	for rows.Next() {
 		// scan query results
 		var deprecateSyntax models.InformationRoutineDeprecated
-		err := rows.Scan(&deprecateSyntax.SchemaName, &deprecateSyntax.RoutineName, &deprecateSyntax.RoutineType,&deprecateSyntax.RoutineDefinition)
+		err := rows.Scan(&deprecateSyntax.SchemaName, &deprecateSyntax.RoutineName, &deprecateSyntax.RoutineType, &deprecateSyntax.RoutineDefinition)
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +210,7 @@ func CheckRoutineFunctionDeprecated(conn *sql.DB) ([]models.InformationRoutineDe
 	for rows.Next() {
 		// scan query results
 		var deprecateFunction models.InformationRoutineDeprecated
-		err := rows.Scan(&deprecateFunction.SchemaName, &deprecateFunction.RoutineName, &deprecateFunction.RoutineType,&deprecateFunction.RoutineDefinition)
+		err := rows.Scan(&deprecateFunction.SchemaName, &deprecateFunction.RoutineName, &deprecateFunction.RoutineType, &deprecateFunction.RoutineDefinition)
 		if err != nil {
 			return nil, err
 		}

@@ -38,6 +38,7 @@ func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 		}
 
 		if len(tables) == 0 {
+			fmt.Printf("schema: %s have zero table. skip process...", schema)
 			continue
 		}
 
@@ -46,6 +47,11 @@ func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 			var rowCounts int
 			// Get schema and table name
 			var table models.InformationSchema = tables[i]
+			// detect empty string.
+			if table.SchemaName == "" && table.TableName == "" {
+				fmt.Println("detect empty schema or table name. skip process...")
+				continue
+			}
 			// Count row statement that received schema and table name
 			countRowStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s", table.SchemaName, table.TableName)
 			// Query count of row
@@ -89,7 +95,6 @@ func getAllSchemas(conn *sql.DB) ([]string, error) {
 	}
 
 	return listOfSchemas, nil
-
 }
 
 func getTablesInSchema(prepareStmt *sql.Stmt, schemaName string) ([]models.InformationSchema, error) {

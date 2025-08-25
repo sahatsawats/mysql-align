@@ -6,7 +6,7 @@ import (
 
 	"github.com/sahatsawats/mysql-align/models"
 )
-
+// Maybe some schema or table contain some special character which required to place in "" -> adjust again
 func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 	var tableInformations []models.InformationSchema
 	var schemas []string
@@ -53,7 +53,7 @@ func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 				continue
 			}
 			// Count row statement that received schema and table name
-			countRowStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s", table.SchemaName, table.TableName)
+			countRowStatement := fmt.Sprintf("SELECT COUNT(*) FROM `%s`.`%s`", table.SchemaName, table.TableName)
 			// Query count of row
 			row := conn.QueryRow(countRowStatement)
 			err := row.Scan(&rowCounts)

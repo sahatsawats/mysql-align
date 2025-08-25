@@ -2,6 +2,7 @@ package features
 
 import (
 	"database/sql"
+	"strings"
 
 	"github.com/sahatsawats/mysql-align/models"
 )
@@ -80,7 +81,7 @@ func CheckCharSet(conn *sql.DB) ([]models.CharSetObject, error) {
 }
 
 func CheckEngine(conn *sql.DB) ([]models.InformationTableEngine, error) {
-	const statement string = `SELECT table_schema, table_name, engine 
+	const statement string = `SELECT table_schema, table_name, engine, CREATE_OPTIONS
 	FROM information_schema.tables WHERE engine != 'InnoDB' AND 
 	table_schema NOT IN ('mysql','performance_schema','sys','information_schema');`
 
@@ -102,7 +103,7 @@ func CheckEngine(conn *sql.DB) ([]models.InformationTableEngine, error) {
 	for rows.Next() {
 		// scan query results
 		var item models.InformationTableEngine
-		err := rows.Scan(&item.SchemaName, &item.TableName, &item.Engine)
+		err := rows.Scan(&item.SchemaName, &item.TableName, &item.Engine, &item.CreateOptions)
 		if err != nil {
 			return nil, err
 		}
@@ -114,6 +115,45 @@ func CheckEngine(conn *sql.DB) ([]models.InformationTableEngine, error) {
 
 	return warningTables, nil
 }
+
+func CheckRowFormat(conn *sql.DB) ([]models.InformationRowFormat, error) {
+	const statement string = `SELECT TABLE_SCHEMA, TABLE_NAME, ENGINE, ROW_FORMAT  
+	From information_schema.tables 
+	WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('mysql','perform
+	ance_schema','performance_schema', 'information_schema','sys','information_schema');`
+
+	var warningRows []models.InformationRowFormat
+	var warningList = []string{"Redundant", "Compact", "Fixed"}
+
+	var warnSet = make(map[string]struct{})
+	for _,w := range warningList {
+		var lowerCase string = strings.ToLower(w) 
+		warnSet[lowerCase] = struct{}{}
+	}
+
+	rows, err := conn.Query(statement)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	// loop through each result
+	for rows.Next() {
+		// scan query results
+		var item models.InformationRowFormat
+		err := rows.Scan(&item.SchemaName, &item.TableName, &item.Engine, &item.RowFormat)
+		if err != nil {
+			return nil, err
+		}
+		// Use map to find a key which convert to lowercase
+		if _, found := warnSet[strings.ToLower(item.RowFormat)]; found {
+			warningRows = append(warningRows, item)
+		}
+	}
+
+	return warningRows, nil
+}
+
 
 func CheckFKDuplication(conn *sql.DB) (int, error) {
 	const statement string = `SELECT COUNT(*) AS constraint_count FROM 

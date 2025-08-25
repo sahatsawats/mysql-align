@@ -28,6 +28,14 @@ type InformationTableEngine struct {
 	SchemaName 	string;
 	TableName	string;
 	Engine		string;
+	CreateOptions string;
+}
+
+type InformationRowFormat struct {
+	SchemaName 	string;
+	TableName	string;
+	Engine		string;
+	RowFormat string;
 }
 
 type InformationView struct {

@@ -151,7 +151,7 @@ func EngineReportToCSV(results []models.InformationTableEngine, outputDir string
 	defer writer.Flush()
 
 	// CSV Header
-	writer.Write([]string{"SCHEMA_NAME", "TABLE_NAME", "ENGINE"})
+	writer.Write([]string{"SCHEMA_NAME", "TABLE_NAME", "ENGINE", "CREATE_OPTIONS"})
 	
 	// Loop through each informationSchema, wrtie each records to csv file.
 	for _, item := range results {
@@ -159,6 +159,7 @@ func EngineReportToCSV(results []models.InformationTableEngine, outputDir string
 			item.SchemaName,
 			item.TableName,
 			item.Engine,
+			item.CreateOptions,
 		}
 		writer.Write(row)
 	}
@@ -166,6 +167,38 @@ func EngineReportToCSV(results []models.InformationTableEngine, outputDir string
 	return nil
 
 }
+
+func RowFormatReportToCSV(results []models.InformationRowFormat, outputDir string) error {
+	const fileName string = "row_format_err.csv"
+	var outputFile string = filepath.Join(outputDir, fileName)
+	
+	file, err := os.Create(outputFile)
+	if err != nil {
+		return fmt.Errorf("error to create output file: %s", err.Error())
+	}
+	defer file.Close()
+
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// CSV Header
+	writer.Write([]string{"SCHEMA_NAME", "TABLE_NAME", "ENGINE", "ROW_FORMAT"})
+	
+	// Loop through each informationSchema, wrtie each records to csv file.
+	for _, item := range results {
+		row := []string{
+			item.SchemaName,
+			item.TableName,
+			item.Engine,
+			item.RowFormat,
+		}
+		writer.Write(row)
+	}
+
+	return nil
+}
+
 
 func PKReportToCSV(results []models.InformationNoPKTable, outputDir string) error {
 	const fileName string = "noPK_err.csv"

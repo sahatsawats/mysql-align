@@ -85,6 +85,22 @@ func main() {
 			fmt.Println("[ENGINE_CHECK]: OK")
 		}
 
+		rowFormatReport, err := features.CheckRowFormat(conn)
+		if err != nil {
+			fmt.Println("Error: ", err)
+
+		}
+		if len(rowFormatReport) != 0 {
+			fmt.Println("[ROW_F_CHECK]: NOT OK. ( ROW_F_CHECK_ERR_COUNT:", len(engineReport), ")")
+			err := utils.RowFormatReportToCSV(rowFormatReport, *output)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		} else {
+			fmt.Println("[ROW_F_CHECK]: OK")
+		}
+
+
 		pkReport, err := features.CheckNoPK(conn)
 		if err != nil {
 			fmt.Println("Error: ", err)

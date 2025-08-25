@@ -15,7 +15,7 @@ import (
 
 // Make docker to test
 func main() {
-	const version string = "v1.06"
+	const version string = "v1.07"
 	
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: myalign <command> [args]")

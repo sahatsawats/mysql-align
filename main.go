@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sahatsawats/mysql-align/db"
 	"github.com/sahatsawats/mysql-align/features"
@@ -36,6 +35,7 @@ func main() {
 		port := CMD.Int("port", 3306, "Port of database server")
 		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
 		output := CMD.String("output-path", "", "output directory")
+		debug := CMD.Bool("debug", false, "enable debug log")
 		CMD.Parse(os.Args[2:])
 
 		if *output == "" {
@@ -45,6 +45,10 @@ func main() {
 		
 		printLogo()
 
+		if *debug {
+			utils.SetDebug(*debug)
+			utils.Debug("Debug mode enabled")
+		}
 
 		// initialize database connection. return conn object
 		conn, err := db.InitializeDB(host, port, user, pwd, serverPubPath)
@@ -57,6 +61,7 @@ func main() {
 		fmt.Println("Checking upgrade compatability to MySQL Enterprise Edition 8.4.X")
 		fmt.Println()
 		
+		//##################################### Main Logic ####################################################
 		charSetReport, err := features.CheckCharSet(conn)
 		if err != nil {
 			fmt.Println("Error: ", err)
@@ -178,8 +183,8 @@ func main() {
 		host := CMD.String("host", "localhost", "Hostname or IP-Address to database server")
 		port := CMD.Int("port", 3306, "Port of database server")
 		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
-
 		output := CMD.String("output", "", "Path to output csv file.")
+		debug := CMD.Bool("debug", false, "enable debug log")
 		CMD.Parse(os.Args[2:])
 
 		if *output == "" {
@@ -188,6 +193,11 @@ func main() {
 		}
 
 		printLogo()
+
+		if *debug {
+			utils.SetDebug(*debug)
+			utils.Debug("Debug mode enabled")
+		}
 
 		// initialize database connection. return conn object
 		conn, err := db.InitializeDB(host, port, user, pwd, serverPubPath)
@@ -221,8 +231,8 @@ func main() {
 		host := CMD.String("host", "localhost", "Hostname or IP-Address to database server")
 		port := CMD.Int("port", 3306, "Port of database server")
 		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
-
 		output := CMD.String("output", "", "Path to output csv file.")
+		debug := CMD.Bool("debug", false, "enable debug log")
 		CMD.Parse(os.Args[2:])
 		
 		if *output == "" {
@@ -231,6 +241,11 @@ func main() {
 		}
 
 		printLogo()
+
+		if *debug {
+			utils.SetDebug(*debug)
+			utils.Debug("Debug mode enabled")
+		}
 
 		// initialize database connection. return conn object
 		conn, err := db.InitializeDB(host, port, user, pwd, serverPubPath)
@@ -267,6 +282,7 @@ func main() {
 		port := CMD.Int("port", 3306, "Port of database server")
 		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
 		output := CMD.String("output", "", "Path to output csv file.")
+		debug := CMD.Bool("debug", false, "enable debug log")
 		CMD.Parse(os.Args[2:])
 
 		// Check output file is not empty.
@@ -275,9 +291,13 @@ func main() {
 			os.Exit(1)
 		}
 
-
 		printLogo()
 
+		if *debug {
+			utils.SetDebug(*debug)
+			utils.Debug("Debug mode enabled")
+		}
+		
 		conn, err := db.InitializeDB(host, port, user, pwd, serverPubPath)
 		if err != nil {
 			fmt.Println("Error: ", err)

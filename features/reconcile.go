@@ -187,6 +187,8 @@ func ReconcileObject(conn *sql.DB) ([]models.InformationObject, error) {
 			return nil, err
 		}
 
+		utils.Debug(fmt.Sprintf("Object discovered: {object_type: %s, schema_name: %s, object_name: %s", object.ObjectType, object.SchemaName, object.ObjectName))
+
 		informationObjects = append(informationObjects, object)
 	}
 

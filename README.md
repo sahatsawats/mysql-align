@@ -7,6 +7,7 @@ This is MySQL script for algin information between source and destination. This 
 1. Reconcile total rows of table for every schema
 2. Reconcile every object within database
 3. Check compatibility before migration such as CHAR_SET, ENGINE, ROW_FORMAT, PRIMARY KEY, and so on.
+4. Get all configurations of MySQL Server
 
 
 <h2>Usage</h2>

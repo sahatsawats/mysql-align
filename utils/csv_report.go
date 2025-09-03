@@ -102,9 +102,6 @@ func SaveInformationObjectToCSV(serverConfigs []models.InformationObject, output
 }
 
 
-
-
-
 func CharSetReportToCSV(results []models.CharSetObject, outputDir string) error {
 	const fileName string = "charset_err.csv"
 	var outputFile string = filepath.Join(outputDir, fileName)

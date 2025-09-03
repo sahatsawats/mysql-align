@@ -3,7 +3,7 @@ package features
 import (
 	"database/sql"
 	"fmt"
-
+	"github.com/sahatsawats/mysql-align/utils"
 	"github.com/sahatsawats/mysql-align/models"
 )
 // Maybe some schema or table contain some special character which required to place in "" -> adjust again
@@ -48,12 +48,13 @@ func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 			// Get schema and table name
 			var table models.InformationSchema = tables[i]
 			// detect empty string.
-			if table.SchemaName == "" && table.TableName == "" {
+			if table.SchemaName == "" || table.TableName == "" {
 				fmt.Println("detect empty schema or table name. skip process...")
 				continue
 			}
 			// Count row statement that received schema and table name
 			countRowStatement := fmt.Sprintf("SELECT COUNT(*) FROM `%s`.`%s`", table.SchemaName, table.TableName)
+			utils.Debug(fmt.Sprintf("Executing row count query: %s",countRowStatement))
 			// Query count of row
 			row := conn.QueryRow(countRowStatement)
 			err := row.Scan(&rowCounts)
@@ -75,6 +76,9 @@ func getAllSchemas(conn *sql.DB) ([]string, error) {
 	var listOfSchemas []string
 	// statement to find all of schemas
 	stmt := "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')"
+
+	utils.Debug("Starting process: getAllSchemas...")
+
 	// execute statement query
 	rows, err := conn.Query(stmt)
 	if err != nil {
@@ -90,15 +94,18 @@ func getAllSchemas(conn *sql.DB) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+		utils.Debug(fmt.Sprintf("Schema found: %s", schemaName))
 		// append results to list
 		listOfSchemas = append(listOfSchemas, schemaName)
 	}
-
+	utils.Debug(fmt.Sprintf("Total schemas found: %d -> %v", len(listOfSchemas), listOfSchemas))
 	return listOfSchemas, nil
 }
 
 func getTablesInSchema(prepareStmt *sql.Stmt, schemaName string) ([]models.InformationSchema, error) {
 	var listOfInformationTable []models.InformationSchema
+
+	utils.Debug(fmt.Sprintf("Starting table retrieval for schema: %s", schemaName))
 
 	// query all of tables name in given schema
 	tables, err := prepareStmt.Query(schemaName)
@@ -119,6 +126,7 @@ func getTablesInSchema(prepareStmt *sql.Stmt, schemaName string) ([]models.Infor
 			SchemaName: tableSchema,
 			TableName:  tableName,
 		}
+		utils.Debug(fmt.Sprintf("Table discovered: %s.%s", tableSchema, tableName))
 
 		// append datatype to list
 		listOfInformationTable = append(listOfInformationTable, informationTable)
@@ -178,6 +186,8 @@ func ReconcileObject(conn *sql.DB) ([]models.InformationObject, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		utils.Debug(fmt.Sprintf("Object discovered: {object_type: %s, schema_name: %s, object_name: %s", object.ObjectType, object.SchemaName, object.ObjectName))
 
 		informationObjects = append(informationObjects, object)
 	}

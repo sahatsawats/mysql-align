@@ -23,7 +23,7 @@ func ReconcileRow(conn *sql.DB) ([]models.InformationSchema, error) {
 	fmt.Printf("Found %d schemas in database.\n", numberOfSchemas)
 
 	// prepare-statement to query all tables within given database.
-	getTableStatement, err := conn.Prepare("SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema = ?")
+	getTableStatement, err := conn.Prepare("SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema = ? AND table_type = 'BASE TABLE';")
 	if err != nil {
 		return nil, err
 	}

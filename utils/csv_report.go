@@ -318,3 +318,32 @@ func FunctionRoutineToCSV(results []models.InformationRoutineDeprecated, outputD
 
 	return nil
 }
+
+func SizeToCSV(results []models.InformationSizeSchema, outputDir string) error {
+	const fileName string = "schema_size.csv"
+	var outputFile string = filepath.Join(outputDir, fileName)
+	
+	file, err := os.Create(outputFile)
+	if err != nil {
+		return fmt.Errorf("error to create output file: %s", err.Error())
+	}
+	defer file.Close()
+
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// CSV Header
+	writer.Write([]string{"SCHEMA_NAME", "SIZE (MB)"})
+	
+	// Loop through each informationSchema, wrtie each records to csv file.
+	for _, item := range results {
+		row := []string{
+			item.SchemaName,
+			strconv.FormatFloat(item.Size, 'f', 2, 32),
+		}
+		writer.Write(row)
+	}
+
+	return nil
+}

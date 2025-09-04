@@ -55,3 +55,8 @@ type InformationNoPKTable struct {
 	SchemaName	string
 	TableName	string
 }
+
+type InformationSizeSchema struct {
+	SchemaName	string
+	Size 		float64
+}

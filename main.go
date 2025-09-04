@@ -14,7 +14,7 @@ import (
 
 // Make docker to test
 func main() {
-	const version string = "v1.08-hotfix"
+	const version string = "v1.10"
 	
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: myalign <command> [args]")
@@ -270,6 +270,54 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "get-size":
+		var resultsReport []models.InformationSizeSchema
+
+		// CMD arguments
+		CMD := flag.NewFlagSet("get-size", flag.ExitOnError)
+		user := CMD.String("user", "root", "User to access database")
+		pwd := CMD.String("password", "", "Password for user to access database")
+		host := CMD.String("host", "localhost", "Hostname or IP-Address to database server")
+		port := CMD.Int("port", 3306, "Port of database server")
+		serverPubPath := CMD.String("server-pub-key", "", "RSA file for transmit encryption data.")
+		output := CMD.String("output", "", "Path to output csv file.")
+		debug := CMD.Bool("debug", false, "enable debug log")
+		CMD.Parse(os.Args[2:])
+
+		if *output == "" {
+			fmt.Println("Please specify output path for csv file with --output <file-path>")
+			os.Exit(1)
+		}
+
+		printLogo()
+
+		if *debug {
+			utils.SetDebug(*debug)
+			utils.Debug("Debug mode enabled")
+		}
+
+		// initialize database connection. return conn object
+		conn, err := db.InitializeDB(host, port, user, pwd, serverPubPath)
+		defer conn.Close()
+		if err != nil {
+			fmt.Println("Error: ", err)
+			os.Exit(1)
+		}
+
+		resultsReport, err = features.GetSchemaSize(conn)
+		if err != nil {
+			errorMsg := fmt.Sprintf("Error on get size process: %s", err.Error())
+			fmt.Println(errorMsg)
+			os.Exit(1)
+		}
+		fmt.Println("total rows: ", len(resultsReport))
+
+		// Dumping data into CSV
+		err = utils.SizeToCSV(resultsReport, *output)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
 
 	case "get-config":
 		//var configs []models.InformationConfig

@@ -3,3 +3,4 @@ output/
 public_key/
 build/
 test-output/
+.claude/settings.local.json

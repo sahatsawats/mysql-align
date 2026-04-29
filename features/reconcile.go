@@ -136,9 +136,7 @@ func getTablesInSchema(prepareStmt *sql.Stmt, schemaName string) ([]models.Infor
 }
 
 func ReconcileObject(conn *sql.DB) ([]models.InformationObject, error) {
-	const statement string = `SELECT 'ObjectType','DatabaseName','ObjectName'
-	UNION ALL
-	SELECT 'Table', TABLE_SCHEMA, TABLE_NAME 
+	const statement string = `SELECT 'Table', TABLE_SCHEMA, TABLE_NAME
 	FROM information_schema.TABLES 
 	WHERE TABLE_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
 
@@ -169,7 +167,7 @@ func ReconcileObject(conn *sql.DB) ([]models.InformationObject, error) {
 	FROM information_schema.STATISTICS
 	WHERE TABLE_SCHEMA NOT IN ('mysql', 'performance_schema', 'information_schema', 'sys')
 
-	ORDER BY DatabaseName, ObjectType, ObjectName;`
+	ORDER BY 2, 1, 3;`
 
 	var informationObjects []models.InformationObject
 	// query statement

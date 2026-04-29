@@ -9,7 +9,7 @@ type InformationSchema struct {
 
 type InformationConfig struct {
 	VariableName	string;
-	VariableVaule	string;
+	VariableValue	string;
 }
 
 type InformationObject struct {
@@ -54,6 +54,12 @@ type InformationRoutineDeprecated struct {
 type InformationNoPKTable struct {
 	SchemaName	string
 	TableName	string
+}
+
+type InformationFKDuplicate struct {
+	SchemaName     string
+	ConstraintName string
+	Count          int
 }
 
 type InformationSizeSchema struct {

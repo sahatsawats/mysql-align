@@ -119,8 +119,7 @@ func CheckEngine(conn *sql.DB) ([]models.InformationTableEngine, error) {
 func CheckRowFormat(conn *sql.DB) ([]models.InformationRowFormat, error) {
 	const statement string = `SELECT TABLE_SCHEMA, TABLE_NAME, ENGINE, ROW_FORMAT  
 	From information_schema.tables 
-	WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('mysql','perform
-	ance_schema','performance_schema', 'information_schema','sys','information_schema');`
+	WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('mysql','performance_schema','performance_schema', 'information_schema','sys','information_schema');`
 
 	var warningRows []models.InformationRowFormat
 	var warningList = []string{"Redundant", "Compact", "Fixed"}
@@ -155,32 +154,28 @@ func CheckRowFormat(conn *sql.DB) ([]models.InformationRowFormat, error) {
 }
 
 
-func CheckFKDuplication(conn *sql.DB) (int, error) {
-	const statement string = `SELECT COUNT(*) AS constraint_count FROM 
-	INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
-	GROUP BY CONSTRAINT_SCHEMA, CONSTRAINT_NAME;`
-	var FKDuplicationCounts int = 0
-	// query
+func CheckFKDuplication(conn *sql.DB) ([]models.InformationFKDuplicate, error) {
+	const statement string = `SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME, COUNT(*) AS occurrences
+	FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+	WHERE CONSTRAINT_TYPE = 'FOREIGN KEY'
+	AND CONSTRAINT_SCHEMA NOT IN ('mysql','performance_schema','sys','information_schema')
+	GROUP BY CONSTRAINT_SCHEMA, CONSTRAINT_NAME
+	HAVING COUNT(*) > 1;`
+	var duplicates []models.InformationFKDuplicate
 	rows, err := conn.Query(statement)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer rows.Close()
-	// loop through each result
 	for rows.Next() {
-		// scan query results
-		var FKCount int
-		err := rows.Scan(&FKCount)
+		var item models.InformationFKDuplicate
+		err := rows.Scan(&item.SchemaName, &item.ConstraintName, &item.Count)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
-
-		if FKCount > 1 {
-			FKDuplicationCounts += 1
-		}
+		duplicates = append(duplicates, item)
 	}
-
-	return FKDuplicationCounts, nil
+	return duplicates, nil
 }
 
 func CheckViewDeprecated(conn *sql.DB) ([]models.InformationView, error) {

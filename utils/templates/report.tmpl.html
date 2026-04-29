@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL Pre-Migration Report — {{.Meta.GeneratedAtFormatted}}</title>
+<style>{{.CSS}}</style>
+</head>
+<body>
+
+<header class="report-header">
+  <h1>MySQL Pre-Migration Report</h1>
+  <p class="subtitle">Compatibility check for MySQL Enterprise Edition 8.4.x</p>
+  <div class="meta-grid">
+    <div class="meta-item"><span class="meta-label">Tool version</span><span class="meta-value">{{.Meta.ToolVersion}}</span></div>
+    <div class="meta-item"><span class="meta-label">Generated at</span><span class="meta-value">{{.Meta.GeneratedAtFormatted}}</span></div>
+    <div class="meta-item"><span class="meta-label">Host</span><span class="meta-value">{{.Meta.Host}}:{{.Meta.Port}}</span></div>
+    <div class="meta-item"><span class="meta-label">User</span><span class="meta-value">{{.Meta.User}}</span></div>
+    {{if .Meta.ServerVersion}}<div class="meta-item"><span class="meta-label">MySQL version</span><span class="meta-value">{{.Meta.ServerVersion}}</span></div>{{end}}
+  </div>
+  <div>
+    <span class="status-overall {{overallClass .OverallStatus}}">{{.OverallStatus}}</span>
+  </div>
+</header>
+
+<div class="page-body">
+
+  <p class="section-title">Summary</p>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Check</th>
+        <th>Severity</th>
+        <th>Status</th>
+        <th>Issues</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Sections}}
+      <tr>
+        <td><a href="#{{.ID}}">{{.Name}}</a></td>
+        <td>{{if and .DefaultSev (ne .Status "ok")}}<span class="pill {{severityClass .DefaultSev}}">{{.DefaultSev}}</span>{{else}}—{{end}}</td>
+        <td><span class="pill {{statusClass .Status}}">{{statusLabel .Status}}</span></td>
+        <td>{{if eq .Status "ok"}}—{{else}}{{.Count}}{{end}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+
+  {{range .Sections}}
+  {{$section := .}}
+  <section class="check-section" id="{{.ID}}">
+    <div class="check-section-header">
+      <h2>{{.Name}}</h2>
+      <span class="pill {{statusClass .Status}}">{{statusLabel .Status}}</span>
+      {{if and .DefaultSev (ne .Status "ok")}}<span class="pill {{severityClass .DefaultSev}}">{{.DefaultSev}}</span>{{end}}
+    </div>
+    <p class="check-description">{{.Description}}</p>
+
+    {{if eq .Status "ok"}}
+      <div class="callout callout-ok">&#10003; No issues found.</div>
+
+    {{else if eq .Status "failed"}}
+      <div class="callout callout-failed"><strong>Check failed to run:</strong> {{.Error}}</div>
+
+    {{else}}
+      {{if .Truncated}}
+      <div class="callout callout-trunc">
+        Showing {{len .Rows}} of {{.TotalCount}} rows.
+        Re-run with <code>--max-rows 0</code> to render all rows.
+      </div>
+      {{end}}
+      {{if .Note}}
+      <div class="callout callout-failed">{{.Note}}</div>
+      {{end}}
+      <details open>
+        <summary>{{.Count}} issue{{if gt .Count 1}}s{{end}} found &mdash; click to collapse</summary>
+        <table class="issue-table">
+          <thead>
+            <tr>{{range .Columns}}<th>{{.}}</th>{{end}}</tr>
+          </thead>
+          <tbody>
+            {{range .Rows}}
+            <tr>{{range $i, $cell := .}}{{if and (lt $i (len $section.CodeCols)) (index $section.CodeCols $i)}}<td class="code">{{$cell}}</td>{{else}}<td>{{$cell}}</td>{{end}}{{end}}</tr>
+            {{end}}
+          </tbody>
+        </table>
+      </details>
+    {{end}}
+  </section>
+  {{end}}
+
+</div>
+
+<footer class="report-footer">
+  mysql-align {{.Meta.ToolVersion}} &mdash; &copy; 2025 First Logic Company
+</footer>
+
+</body>
+</html>

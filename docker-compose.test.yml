@@ -1,0 +1,22 @@
+services:
+  mysql-test:
+    image: mysql:5.7.44
+    container_name: mysql-align-test
+    ports: ["3307:3306"]
+    environment:
+      MYSQL_ROOT_PASSWORD: testpw
+      MYSQL_ROOT_HOST: "%"
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --secure-file-priv=
+      --log-bin-trust-function-creators=1
+    volumes:
+      - ./testdata/seed.sql:/docker-entrypoint-initdb.d/01-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-ptestpw"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s

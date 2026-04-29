@@ -56,6 +56,12 @@ type InformationNoPKTable struct {
 	TableName	string
 }
 
+type InformationFKDuplicate struct {
+	SchemaName     string
+	ConstraintName string
+	Count          int
+}
+
 type InformationSizeSchema struct {
 	SchemaName	string
 	Size 		float64

@@ -5,11 +5,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Build
-go build -o myalign .
+# Build — output goes to build/, filename includes the version const from main.go
+# Bash / Git Bash
+VERSION=$(grep -oP 'const version = "\K[^"]+' main.go) && go build -o "build/myalign-test-${VERSION}.exe" .
+
+# PowerShell
+$v = (Select-String 'const version = "(.+)"' main.go).Matches.Groups[1].Value; go build -o "build/myalign-test-$v.exe" .
 
 # Run
-./myalign <command> [options]
+./build/myalign-test-<version>.exe <command> [options]
 
 # Tidy dependencies
 go mod tidy

@@ -19,7 +19,7 @@ func GetConfiguration(conn *sql.DB) ([]models.InformationConfig, error) {
 	for rows.Next() {
 		var config models.InformationConfig
 
-		err := rows.Scan(&config.VariableName, &config.VariableVaule)
+		err := rows.Scan(&config.VariableName, &config.VariableValue)
 		if err != nil {
 			return nil, err
 		}

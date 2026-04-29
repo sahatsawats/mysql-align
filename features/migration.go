@@ -119,8 +119,7 @@ func CheckEngine(conn *sql.DB) ([]models.InformationTableEngine, error) {
 func CheckRowFormat(conn *sql.DB) ([]models.InformationRowFormat, error) {
 	const statement string = `SELECT TABLE_SCHEMA, TABLE_NAME, ENGINE, ROW_FORMAT  
 	From information_schema.tables 
-	WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('mysql','perform
-	ance_schema','performance_schema', 'information_schema','sys','information_schema');`
+	WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('mysql','performance_schema','performance_schema', 'information_schema','sys','information_schema');`
 
 	var warningRows []models.InformationRowFormat
 	var warningList = []string{"Redundant", "Compact", "Fixed"}

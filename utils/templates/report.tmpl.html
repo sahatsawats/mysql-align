@@ -39,7 +39,7 @@
       {{range .Sections}}
       <tr>
         <td><a href="#{{.ID}}">{{.Name}}</a></td>
-        <td>{{if .DefaultSev}}<span class="pill {{severityClass .DefaultSev}}">{{.DefaultSev}}</span>{{end}}</td>
+        <td>{{if and .DefaultSev (ne .Status "ok")}}<span class="pill {{severityClass .DefaultSev}}">{{.DefaultSev}}</span>{{else}}—{{end}}</td>
         <td><span class="pill {{statusClass .Status}}">{{statusLabel .Status}}</span></td>
         <td>{{if eq .Status "ok"}}—{{else}}{{.Count}}{{end}}</td>
       </tr>
@@ -53,7 +53,7 @@
     <div class="check-section-header">
       <h2>{{.Name}}</h2>
       <span class="pill {{statusClass .Status}}">{{statusLabel .Status}}</span>
-      {{if .DefaultSev}}<span class="pill {{severityClass .DefaultSev}}">{{.DefaultSev}}</span>{{end}}
+      {{if and .DefaultSev (ne .Status "ok")}}<span class="pill {{severityClass .DefaultSev}}">{{.DefaultSev}}</span>{{end}}
     </div>
     <p class="check-description">{{.Description}}</p>
 

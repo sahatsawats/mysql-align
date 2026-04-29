@@ -4,8 +4,14 @@ A CLI tool for MySQL database auditing and migration readiness. It connects to a
 
 ## Build
 
+The binary is placed in the `build/` directory and named after the version constant in `main.go`.
+
 ```bash
-go build -o myalign .
+# Bash / Git Bash
+VERSION=$(grep -oP 'const version = "\K[^"]+' main.go) && go build -o "build/myalign-test-${VERSION}.exe" .
+
+# PowerShell
+$v = (Select-String 'const version = "(.+)"' main.go).Matches.Groups[1].Value; go build -o "build/myalign-test-$v.exe" .
 ```
 
 Requires Go 1.23+ and a network-accessible MySQL server. No config files — all connection parameters are passed as flags at runtime.
@@ -85,7 +91,7 @@ myalign recon-rows --host 192.168.1.10 --user admin --password secret --output .
 
 | Flag | Default | Description |
 |---|---|---|
-| `--output` | _(required)_ | Full path to the output CSV file |
+| `--output` | _(required)_ | Output directory; file is written as `recon_rows_<timestamp>.csv` |
 | `--debug` | `false` | Print debug log to stdout |
 
 **Output columns:** `schema_name`, `table_name`, `rows`
@@ -104,7 +110,7 @@ myalign recon-objs --host 192.168.1.10 --user admin --password secret --output .
 
 | Flag | Default | Description |
 |---|---|---|
-| `--output` | _(required)_ | Full path to the output CSV file |
+| `--output` | _(required)_ | Output directory; file is written as `recon_objects_<timestamp>.csv` |
 | `--debug` | `false` | Print debug log to stdout |
 
 **Output columns:** `object_type`, `schema_name`, `object_name`
@@ -123,7 +129,7 @@ myalign get-size --host 192.168.1.10 --user admin --password secret --output ./o
 
 | Flag | Default | Description |
 |---|---|---|
-| `--output` | _(required)_ | Output directory. File is written as `schema_size.csv` |
+| `--output` | _(required)_ | Output directory; file is written as `schema_size_<timestamp>.csv` |
 | `--debug` | `false` | Print debug log to stdout |
 
 **Output columns:** `schema_name`, `size_mb`
@@ -144,7 +150,7 @@ myalign get-config --host 192.168.1.10 --user admin --password secret --output .
 
 | Flag | Default | Description |
 |---|---|---|
-| `--output` | _(required)_ | Full path to the output CSV file |
+| `--output` | _(required)_ | Output directory; file is written as `server_config_<timestamp>.csv` |
 | `--debug` | `false` | Print debug log to stdout |
 
 **Output columns:** `variable_name`, `variable_value`

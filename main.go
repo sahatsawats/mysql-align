@@ -15,7 +15,7 @@ import (
 	"github.com/sahatsawats/mysql-align/utils"
 )
 
-const version = "v1.10"
+const version = "v2-cl"
 
 type connFlags struct {
 	user         string
@@ -377,7 +377,7 @@ func runPreMigration(args []string) error {
 func runReconRows(args []string) error {
 	fs := flag.NewFlagSet("recon-rows", flag.ExitOnError)
 	cf := registerConnFlags(fs)
-	output := fs.String("output", "", "Path to output csv file.")
+	output := fs.String("output", "", "Output directory; file is written as recon_rows_<timestamp>.csv")
 	debug := fs.Bool("debug", false, "enable debug log")
 	fs.Parse(args)
 
@@ -414,7 +414,7 @@ func runReconRows(args []string) error {
 func runReconObjs(args []string) error {
 	fs := flag.NewFlagSet("recon-objs", flag.ExitOnError)
 	cf := registerConnFlags(fs)
-	output := fs.String("output", "", "Path to output csv file.")
+	output := fs.String("output", "", "Output directory; file is written as recon_objects_<timestamp>.csv")
 	debug := fs.Bool("debug", false, "enable debug log")
 	fs.Parse(args)
 
@@ -451,7 +451,7 @@ func runReconObjs(args []string) error {
 func runGetSize(args []string) error {
 	fs := flag.NewFlagSet("get-size", flag.ExitOnError)
 	cf := registerConnFlags(fs)
-	output := fs.String("output", "", "Path to output csv file.")
+	output := fs.String("output", "", "Output directory; file is written as schema_size_<timestamp>.csv")
 	debug := fs.Bool("debug", false, "enable debug log")
 	fs.Parse(args)
 
@@ -488,7 +488,7 @@ func runGetSize(args []string) error {
 func runGetConfig(args []string) error {
 	fs := flag.NewFlagSet("get-config", flag.ExitOnError)
 	cf := registerConnFlags(fs)
-	output := fs.String("output", "", "Path to output csv file.")
+	output := fs.String("output", "", "Output directory; file is written as server_config_<timestamp>.csv")
 	debug := fs.Bool("debug", false, "enable debug log")
 	fs.Parse(args)
 

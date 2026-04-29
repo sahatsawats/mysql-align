@@ -6,127 +6,126 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/sahatsawats/mysql-align/models"
 )
 
+func csvFilePath(outputDir, prefix string) (string, error) {
+	ts := time.Now().Format("2006-01-02_15-04-05")
+	fileName := fmt.Sprintf("%s_%s.csv", prefix, ts)
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+		return "", fmt.Errorf("create output directory: %w", err)
+	}
+	return filepath.Join(outputDir, fileName), nil
+}
 
-func SaveInformationTablesToCSV(informationTable []models.InformationSchema, outputFile string) error {
-	fmt.Println("Starting process for dumping data into csv file...")
+func SaveInformationTablesToCSV(informationTable []models.InformationSchema, outputDir string) error {
+	outputFile, err := csvFilePath(outputDir, "recon_rows")
+	if err != nil {
+		return err
+	}
+
 	file, err := os.Create(outputFile)
 	if err != nil {
 		return fmt.Errorf("error to create output file: %s", err.Error())
 	}
 	defer file.Close()
 
-
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// CSV Header
 	writer.Write([]string{"Schema", "Table", "Row"})
-	
-	// Loop through each informationSchema, wrtie each records to csv file.
 	for _, item := range informationTable {
-		row := []string{
+		writer.Write([]string{
 			item.SchemaName,
 			item.TableName,
 			strconv.Itoa(item.Rows),
-		}
-		writer.Write(row)
+		})
 	}
 
-	fmt.Println("CSV file created successfully.")
-
+	fmt.Println("CSV file created:", outputFile)
 	return nil
 }
 
-func SaveServerConfigurationToCSV(serverConfigs []models.InformationConfig, outputFile string) error {
-	fmt.Println("Starting process for dumping data into csv file...")
+func SaveServerConfigurationToCSV(serverConfigs []models.InformationConfig, outputDir string) error {
+	outputFile, err := csvFilePath(outputDir, "server_config")
+	if err != nil {
+		return err
+	}
+
 	file, err := os.Create(outputFile)
 	if err != nil {
 		return fmt.Errorf("error to create output file: %s", err.Error())
 	}
 	defer file.Close()
 
-
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// CSV Header
-	writer.Write([]string{"SERVER_VARIABLES", "SERVER_VAULE"})
-	
-	// Loop through each informationSchema, wrtie each records to csv file.
+	writer.Write([]string{"SERVER_VARIABLES", "SERVER_VALUE"})
 	for _, item := range serverConfigs {
-		row := []string{
+		writer.Write([]string{
 			item.VariableName,
-			item.VariableVaule,
-		}
-		writer.Write(row)
+			item.VariableValue,
+		})
 	}
 
-	fmt.Println("CSV file created successfully.")
-
+	fmt.Println("CSV file created:", outputFile)
 	return nil
 }
 
+func SaveInformationObjectToCSV(objects []models.InformationObject, outputDir string) error {
+	outputFile, err := csvFilePath(outputDir, "recon_objects")
+	if err != nil {
+		return err
+	}
 
-func SaveInformationObjectToCSV(serverConfigs []models.InformationObject, outputFile string) error {
-	fmt.Println("Starting process for dumping data into csv file...")
 	file, err := os.Create(outputFile)
 	if err != nil {
 		return fmt.Errorf("error to create output file: %s", err.Error())
 	}
 	defer file.Close()
 
-
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// CSV Header
 	writer.Write([]string{"OBJECT_TYPE", "SCHEMA_NAME", "OBJECT_NAME"})
-	
-	// Loop through each informationSchema, wrtie each records to csv file.
-	for _, item := range serverConfigs {
-		row := []string{
+	for _, item := range objects {
+		writer.Write([]string{
 			item.ObjectType,
 			item.SchemaName,
 			item.ObjectName,
-		}
-		writer.Write(row)
+		})
 	}
 
-	fmt.Println("CSV file created successfully.")
-
+	fmt.Println("CSV file created:", outputFile)
 	return nil
 }
 
-
 func SizeToCSV(results []models.InformationSizeSchema, outputDir string) error {
-	const fileName string = "schema_size.csv"
-	var outputFile string = filepath.Join(outputDir, fileName)
-	
+	outputFile, err := csvFilePath(outputDir, "schema_size")
+	if err != nil {
+		return err
+	}
+
 	file, err := os.Create(outputFile)
 	if err != nil {
 		return fmt.Errorf("error to create output file: %s", err.Error())
 	}
 	defer file.Close()
 
-
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// CSV Header
 	writer.Write([]string{"SCHEMA_NAME", "SIZE (MB)"})
-	
-	// Loop through each informationSchema, wrtie each records to csv file.
 	for _, item := range results {
-		row := []string{
+		writer.Write([]string{
 			item.SchemaName,
 			strconv.FormatFloat(item.Size, 'f', 2, 32),
-		}
-		writer.Write(row)
+		})
 	}
 
+	fmt.Println("CSV file created:", outputFile)
 	return nil
 }

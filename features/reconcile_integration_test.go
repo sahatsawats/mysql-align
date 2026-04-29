@@ -4,8 +4,6 @@ package features
 
 import (
 	"testing"
-
-	"github.com/sahatsawats/mysql-align/models"
 )
 
 func TestReconcileRow(t *testing.T) {
@@ -41,23 +39,12 @@ func TestReconcileObject(t *testing.T) {
 		t.Fatalf("ReconcileObject error: %v", err)
 	}
 
-	if len(results) < 2 {
-		t.Fatalf("expected at least 2 entries (header + data), got %d", len(results))
+	if len(results) < 1 {
+		t.Fatalf("expected non-empty results from ReconcileObject")
 	}
 
-	// First row is always a literal header — this is a documented quirk of the SQL.
-	header := results[0]
-	wantHeader := models.InformationObject{
-		ObjectType: "ObjectType",
-		SchemaName: "DatabaseName",
-		ObjectName: "ObjectName",
-	}
-	if header != wantHeader {
-		t.Errorf("results[0] header mismatch: got %+v, want %+v", header, wantHeader)
-	}
-
-	// Fixture objects must appear in results[1:].
-	data := results[1:]
+	// All rows are real data — no phantom header row.
+	data := results
 	wantPresent := []struct{ objType, schema, namePrefix string }{
 		{"Table", "fixture_rows", "t_a"},
 		{"Table", "fixture_rows", "t_b"},

@@ -9,7 +9,7 @@ type InformationSchema struct {
 
 type InformationConfig struct {
 	VariableName	string;
-	VariableVaule	string;
+	VariableValue	string;
 }
 
 type InformationObject struct {

@@ -30,22 +30,31 @@ jobs:
         run: bash scripts/test-integration.sh
 
   build:
-    name: Build
+    name: Build (${{ matrix.goos }})
     runs-on: ubuntu-latest
     needs: integration-test
     if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+            ext: .exe
+          - goos: linux
+            goarch: amd64
+            ext: ""
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Build Windows binary
+      - name: Build binary
         run: |
           VERSION=$(grep -oP 'const version = "\K[^"]+' main.go)
-          GOOS=windows GOARCH=amd64 go build -o "build/myalign-test-${VERSION}.exe" .
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o "build/myalign-${VERSION}${{ matrix.ext }}" .
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: myalign-windows-amd64
-          path: build/myalign-test-*.exe
+          name: myalign-${{ matrix.goos }}-amd64
+          path: build/myalign-*
           retention-days: 30

@@ -1,0 +1,60 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+# Build
+go build -o myalign .
+
+# Run
+./myalign <command> [options]
+
+# Tidy dependencies
+go mod tidy
+
+# Vet
+go vet ./...
+```
+
+There are no tests in this project.
+
+## Architecture
+
+This is a CLI tool written in Go that connects to a MySQL server and produces CSV reports for database auditing and migration readiness. It has no config files — all connection parameters are passed as CLI flags at runtime.
+
+**Entry point:** `main.go` — parses the first positional argument as the subcommand, then uses `flag.FlagSet` to parse remaining args. Each subcommand opens a DB connection via `db.InitializeDB`, calls a function from `features/`, and writes output via `utils/`.
+
+**Packages:**
+
+- `db/` — `InitializeDB` builds a DSN and returns `*sql.DB`. Optionally registers an RSA public key (via `--server-pub-key`) for encrypted authentication against MySQL Enterprise.
+- `features/` — one file per feature group; each function accepts `*sql.DB` and returns a typed slice + error. Functions query `information_schema` / `performance_schema` directly.
+- `models/` — plain structs that mirror query result shapes. No ORM.
+- `utils/` — `csv_report.go` has one `*ToCSV` function per report type; `debug.go` is a package-level toggle (`SetDebug` / `Debug`).
+
+**Subcommands and their output:**
+
+| Command | Feature function | Output |
+|---|---|---|
+| `pre-migration` | Multiple checks in `migration.go` | Per-check CSVs in `--output-path` dir |
+| `recon-rows` | `ReconcileRow` | Single CSV file at `--output` path |
+| `recon-objs` | `ReconcileObject` | Single CSV file at `--output` path |
+| `get-size` | `GetSchemaSize` | `schema_size.csv` in `--output` dir |
+| `get-config` | `GetConfiguration` | Single CSV file at `--output` path |
+
+**`pre-migration` checks** (outputs named CSVs into `--output-path` directory):
+- `CHAR_CHECK` — schemas not using `utf8mb4` (ERROR for `utf8`, WARNING for `latin1`)
+- `ENGINE_CHECK` — tables not using InnoDB (MyISAM, Memory, FEDERATED)
+- `ROW_F_CHECK` — tables with Redundant/Compact/Fixed row format
+- `PK_CHECK` — base tables with no primary key
+- `FK_CHECK` — duplicate foreign key constraint names (count only, no CSV)
+- `VIEW_CHECK` — views using deprecated `GROUP BY ASC/DESC` syntax
+- `ROUTINE_SYNTAX_CHECK` — routines using deprecated `GROUP BY ASC/DESC`
+- `ROUTINE_FUNC_CHECK` — routines using deprecated `DECODE/ENCODE/COMPRESS` functions
+
+**Adding a new feature** follows the existing pattern:
+1. Add a struct to `models/models.go`
+2. Add a query function to the appropriate file in `features/` (or a new file)
+3. Add a `*ToCSV` function in `utils/csv_report.go`
+4. Wire up a new `case` in the `switch` in `main.go`

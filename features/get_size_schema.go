@@ -34,7 +34,7 @@ func GetSchemaSize(conn *sql.DB) ([]models.InformationSizeSchema, error) {
 			return nil, err
 		}
 
-		utils.Debug(fmt.Sprintf("Object discovered: {schema_name: %s, size: %s", object.SchemaName, object.Size))
+		utils.Debug(fmt.Sprintf("Object discovered: {schema_name: %s, size: %f", object.SchemaName, object.Size))
 
 		informationObjects = append(informationObjects, object)
 	}

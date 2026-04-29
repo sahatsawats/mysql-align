@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find D:\\\\\\\\software\\\\\\\\mysql-align -type f -name \"*.go\")",
+      "Bash(go vet *)"
+    ]
+  }
+}
